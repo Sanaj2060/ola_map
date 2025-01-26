@@ -5,7 +5,9 @@ export async function GET(req: Request) {
   const input = searchParams.get("input");
 
   try {
-    const tokenResponse = await fetch("http://localhost:3001/api/token");
+    const tokenURL = `${process.env.NEXT_PUBLIC_URL}/api/token`;
+    const tokenResponse = await fetch(tokenURL);
+    // const tokenResponse = await fetch("http://localhost:3000/api/token");
     const tokenData = await tokenResponse.json();
     const access_token = tokenData.access_token;
 

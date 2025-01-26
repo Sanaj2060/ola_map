@@ -1,9 +1,16 @@
 "use client";
-import { useState } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from 'react-leaflet';
-import { LeafletMouseEvent } from 'leaflet';
-import polyline from '@mapbox/polyline';  // Use the polyline library to decode the polyline data
-import 'leaflet/dist/leaflet.css';
+import { useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
+import { LeafletMouseEvent } from "leaflet";
+import polyline from "@mapbox/polyline"; // Use the polyline library to decode the polyline data
+import "leaflet/dist/leaflet.css";
 
 // Define the types for the suggestion response
 interface Location {
@@ -31,14 +38,48 @@ interface Suggestion {
 const DistanceCalculator = () => {
   const [origin, setOrigin] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
-  const [originCoords, setOriginCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [destinationCoords, setDestinationCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [originCoords, setOriginCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [destinationCoords, setDestinationCoords] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [distance, setDistance] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [routeCoordinates, setRouteCoordinates] = useState<Array<[number, number]>>([]);
+  const [showSuggestionsOrigin, setShowSuggestionsOrigin] =
+    useState<boolean>(false);
+  const [showSuggestionsDestination, setShowSuggestionsDestination] =
+    useState<boolean>(false);
+  const [routeCoordinates, setRouteCoordinates] = useState<
+    Array<[number, number]>
+  >([]);
   const [clickCount, setClickCount] = useState(0);
 
+  //take the real address from the user database
+  const sameAsMyAddress = "Kakching, Manipur, India";
+
+  // Set origin and destination to my address
+  const setSameAsMyAddressOrigin = () => {
+    // Focus on the origin input
+    const originInput = document.querySelector('input[placeholder="Enter origin"]') as HTMLInputElement;
+    setOrigin(sameAsMyAddress);
+    fetchSuggestions(sameAsMyAddress);
+    setShowSuggestionsOrigin(true);
+  };
+
+  const setSameAsMyAddressDest = () => {
+    // Focus on the destination input
+    const destinationInput = document.querySelector('input[placeholder="Enter destination"]') as HTMLInputElement;
+    if (destinationInput) {
+      destinationInput.focus();
+    }
+    setDestination(sameAsMyAddress);
+    fetchSuggestions(sameAsMyAddress);
+    setShowSuggestionsDestination(true);
+  };
   // Function to fetch suggestions for origin/destination
   const fetchSuggestions = async (input: string) => {
     try {
@@ -48,13 +89,13 @@ const DistanceCalculator = () => {
         return;
       }
 
-      const data: SuggestionResponse = await response.json();  // Type the response
+      const data: SuggestionResponse = await response.json(); // Type the response
       const suggestions = data.predictions.map((prediction) => ({
         description: prediction.description,
         latitude: prediction.geometry.location.lat,
         longitude: prediction.geometry.location.lng,
       }));
-      
+
       setSuggestions(suggestions);
       setShowSuggestions(true);
     } catch (error) {
@@ -74,10 +115,16 @@ const DistanceCalculator = () => {
     const destination = `${destinationCoords.lat},${destinationCoords.lng}`;
 
     try {
-      const response = await fetch(`/api/distance-matrix?origin=${origin}&destination=${destination}`);
+      const response = await fetch(
+        `/api/distance-matrix?origin=${origin}&destination=${destination}`
+      );
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Error fetching distance:", response.statusText, errorText);
+        console.error(
+          "Error fetching distance:",
+          response.statusText,
+          errorText
+        );
         setDistance("Error calculating distance");
         return;
       }
@@ -102,7 +149,7 @@ const DistanceCalculator = () => {
     useMapEvents({
       click(e: LeafletMouseEvent) {
         const selectedCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
-        
+
         if (clickCount === 0) {
           setOriginCoords(selectedCoords);
           setClickCount(1);
@@ -118,9 +165,14 @@ const DistanceCalculator = () => {
   };
 
   // Reverse geocode to get the name of the place
-  const reverseGeocode = async (coords: { lat: number; lng: number }, setLocation: (name: string) => void) => {
+  const reverseGeocode = async (
+    coords: { lat: number; lng: number },
+    setLocation: (name: string) => void
+  ) => {
     try {
-      const response = await fetch(`/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`);
+      const response = await fetch(
+        `/api/reverse-geocode?lat=${coords.lat}&lng=${coords.lng}`
+      );
       const data = await response.json();
       setLocation(data.place_name || "Selected Location");
     } catch (error) {
@@ -130,8 +182,14 @@ const DistanceCalculator = () => {
   };
 
   return (
-    <div style={{ display: 'flex' }}>
-      <div style={{ flex: 1 }}>
+    <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, flexDirection: "column" }}>
+        <input
+          type="checkbox"
+          onClick={setSameAsMyAddressOrigin}
+          placeholder="Same as my Address"
+        />
+        <br />
         <input
           type="text"
           value={origin}
@@ -140,17 +198,20 @@ const DistanceCalculator = () => {
             fetchSuggestions(e.target.value);
           }}
           placeholder="Enter origin"
-          onFocus={() => setShowSuggestions(true)}
+          onFocus={() => setShowSuggestionsOrigin(true)}
         />
-        {showSuggestions && (
+        {showSuggestionsOrigin && (
           <ul>
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
                 onClick={() => {
                   setOrigin(suggestion.description);
-                  setOriginCoords({ lat: suggestion.latitude, lng: suggestion.longitude });
-                  setShowSuggestions(false);
+                  setOriginCoords({
+                    lat: suggestion.latitude,
+                    lng: suggestion.longitude,
+                  });
+                  setShowSuggestionsOrigin(false);
                 }}
               >
                 {suggestion.description}
@@ -158,7 +219,13 @@ const DistanceCalculator = () => {
             ))}
           </ul>
         )}
-
+        <br />
+        <input
+          type="checkbox"
+          onClick={setSameAsMyAddressDest}
+          placeholder="Same as my Address"
+        />
+        <br />
         <input
           type="text"
           value={destination}
@@ -167,17 +234,20 @@ const DistanceCalculator = () => {
             fetchSuggestions(e.target.value);
           }}
           placeholder="Enter destination"
-          onFocus={() => setShowSuggestions(true)}
+          onFocus={() => setShowSuggestionsDestination(true)}
         />
-        {showSuggestions && (
+        {showSuggestionsDestination && (
           <ul>
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
                 onClick={() => {
                   setDestination(suggestion.description);
-                  setDestinationCoords({ lat: suggestion.latitude, lng: suggestion.longitude });
-                  setShowSuggestions(false);
+                  setDestinationCoords({
+                    lat: suggestion.latitude,
+                    lng: suggestion.longitude,
+                  });
+                  setShowSuggestionsDestination(false);
                 }}
               >
                 {suggestion.description}
@@ -185,13 +255,17 @@ const DistanceCalculator = () => {
             ))}
           </ul>
         )}
-
+        <br />
         <button onClick={calculateDistance}>Calculate Distance</button>
         <p>Distance: {distance || ""}</p>
       </div>
 
       <div style={{ flex: 1, height: "500px", marginLeft: "20px" }}>
-        <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={[20.5937, 78.9629]}
+          zoom={5}
+          style={{ height: "100%", width: "100%" }}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors'

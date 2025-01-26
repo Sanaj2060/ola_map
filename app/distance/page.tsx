@@ -1,4 +1,5 @@
-import DistanceCalculator from '../components/DistanceCalculator';
+// import DistanceCalculator from '../components/DistanceCalculator';
+import DistanceCalculator from "../components/DistanceCalculatorWrapper";
 
 const DistancePage = () => (
   <div>
