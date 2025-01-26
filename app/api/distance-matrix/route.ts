@@ -6,7 +6,8 @@ export async function GET(req: Request) {
   const destination = searchParams.get("destination");
 
   try {
-    const tokenResponse = await fetch("http://localhost:3001/api/token");
+    const tokenURL = `${process.env.NEXT_PUBLIC_URL}/api/token`;
+    const tokenResponse = await fetch(tokenURL);
     if (!tokenResponse.ok) {
       console.error("Error retrieving token:", tokenResponse.statusText);
       return NextResponse.json({ error: "Failed to retrieve token" }, { status: 500 });
