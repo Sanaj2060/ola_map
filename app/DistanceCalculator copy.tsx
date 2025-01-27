@@ -1,8 +1,15 @@
 "use client";
-import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from "react-leaflet";
+import { useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Marker,
+  Popup,
+  useMapEvents,
+} from "react-leaflet";
 import { LeafletMouseEvent } from "leaflet";
-import polyline from "@mapbox/polyline"; // For polyline decoding
+import polyline from "@mapbox/polyline"; // Use the polyline library to decode the polyline data
 import "leaflet/dist/leaflet.css";
 import styles from './DistanceCalculator.module.css'; // Import the CSS module
 
@@ -43,9 +50,13 @@ const DistanceCalculator = () => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [distance, setDistance] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
-  const [showSuggestionsOrigin, setShowSuggestionsOrigin] = useState<boolean>(false);
-  const [showSuggestionsDestination, setShowSuggestionsDestination] = useState<boolean>(false);
-  const [routeCoordinates, setRouteCoordinates] = useState<Array<[number, number]>>([]);
+  const [showSuggestionsOrigin, setShowSuggestionsOrigin] =
+    useState<boolean>(false);
+  const [showSuggestionsDestination, setShowSuggestionsDestination] =
+    useState<boolean>(false);
+  const [routeCoordinates, setRouteCoordinates] = useState<
+    Array<[number, number]>
+  >([]);
   const [clickCount, setClickCount] = useState(0);
 
   // Take the real address from the user database
@@ -170,17 +181,6 @@ const DistanceCalculator = () => {
     }
   };
 
-  // Map redrawing logic to ensure the map is resized properly
-  const MapRedraw = () => {
-    const map = useMap();
-    useEffect(() => {
-      if (map) {
-        map.invalidateSize();
-      }
-    }, [originCoords, destinationCoords, routeCoordinates, map]);
-    return null;
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.inputSection}>
@@ -273,7 +273,7 @@ const DistanceCalculator = () => {
         <MapContainer
           center={[20.5937, 78.9629]}
           zoom={5}
-          style={{ height: "500px", width: "100%" }} // Ensure the height is set
+          style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -293,7 +293,6 @@ const DistanceCalculator = () => {
             <Polyline positions={routeCoordinates} color="blue" />
           )}
           <MapClickHandler />
-          <MapRedraw />
         </MapContainer>
       </div>
     </div>
